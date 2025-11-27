@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# OpenVPN DNS hook for systemd-resolved
+
+set -e
+
+IFACE="${dev}"    # e.g. tun0
+
+DNS_SERVERS=""
+SEARCH_DOMAINS=""
+
+# Parse foreign_option_* env vars from OpenVPN
+for optionname in ${!foreign_option_*}; do
+    option="${!optionname}"
+    set -- $option
+    if [ "$1" = "dhcp-option" ]; then
+        case "$2" in
+            DNS)
+                DNS_SERVERS="$DNS_SERVERS $3"
+                ;;
+            DOMAIN|DOMAIN-SEARCH)
+                SEARCH_DOMAINS="$SEARCH_DOMAINS $3"
+                ;;
+        esac
+    fi
+done
+
+case "$script_type" in
+    up)
+        # Set DNS servers on this interface
+        if [ -n "$DNS_SERVERS" ]; then
+            resolvectl dns "$IFACE" $DNS_SERVERS
+        fi
+
+        # Route all DNS queries via this interface
+        resolvectl domain "$IFACE" "~."
+
+        # Optional: if you want this link as default DNS route:
+        # resolvectl default-route "$IFACE" true
+        ;;
+
+    down)
+        # Revert any DNS configuration for this interface
+        resolvectl revert "$IFACE"
+        ;;
+esac
+
+exit 0
