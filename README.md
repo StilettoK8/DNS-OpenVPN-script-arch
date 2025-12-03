@@ -16,7 +16,7 @@ It exists because I wanted VPN DNS to *just work* without manually fixing
 > predictable way.
 >
 > The goal is **quick, reliable DNS setup** on VPN connect and a clean revert
-> on disconnect — nothing more.
+> on disconnect, nothing more.
 >
 > It is more or less *vibe-coded with intent*: written to solve my problem,
 > not to be a universal OpenVPN DNS solution.
